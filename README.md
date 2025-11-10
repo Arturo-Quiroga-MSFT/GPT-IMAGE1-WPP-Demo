@@ -166,6 +166,217 @@ images_list = image_to_image(
 )
 ```
 
+## 🔌 REST API Integration for Image-to-Image
+
+For production integrations, WPP can use the Azure OpenAI REST API directly. Below are examples in both Python and TypeScript.
+
+### Python REST API Example
+
+```python
+import os
+import requests
+import base64
+from io import BytesIO
+from PIL import Image
+from datetime import datetime
+
+def image_to_image(image_file, prompt, n=1, size="1024x1024", quality="high"):
+    """
+    Transforms an input image based on a text prompt using Azure OpenAI's REST API.
+    
+    This function enables image-to-image transformations such as:
+    - Style transfers (photo to painting, realistic to cartoon, etc.)
+    - Mood and atmosphere changes (day to night, sunny to rainy)
+    - Artistic effects and filters
+    - Seasonal transformations
+    - Complete reimagining while preserving composition
+
+    Parameters:
+        image_file (str): Path to the source image file.
+        prompt (str): Text description guiding the image transformation.
+        n (int, optional): Number of transformed images to generate. Defaults to 1.
+        size (str, optional): Output image size. Options: "1024x1024", "1536x1024", "1024x1536".
+        quality (str, optional): Image quality. Options: "high", "medium", "low".
+
+    Returns:
+        list[str]: List of file paths to the saved transformed images.
+    """
+    try:
+        # Configuration
+        api_key = os.getenv("IMAGEGEN_AOAI_API_KEY")
+        endpoint = os.getenv("IMAGEGEN_AOAI_RESOURCE").rstrip('/')
+        deployment = os.getenv("IMAGEGEN_DEPLOYMENT", "gpt-image-1")
+        api_version = "2025-04-01-preview"
+        
+        # Headers
+        headers = {"api-key": api_key}
+        
+        # Construct URL
+        url = f"{endpoint}/openai/deployments/{deployment}/images/edits?api-version={api_version}"
+        
+        # Prepare files and data
+        files = {"image": open(image_file, "rb")}
+        data = {
+            "prompt": prompt,
+            "n": n,
+            "size": size,
+            "quality": quality,
+        }
+
+        # Send the request
+        response = requests.post(url, headers=headers, files=files, data=data)
+        response.raise_for_status()
+        
+        # Get the results
+        images_data = response.json()["data"]
+        encoded_images = [img["b64_json"] for img in images_data]
+
+        # Parse and save the generated images
+        output_images_list = []
+        for encoded_image in encoded_images:
+            img = Image.open(BytesIO(base64.b64decode(encoded_image)))
+            
+            # Save image to file
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")[:-3]
+            output_file = f"transformed_{timestamp}.jpg"
+            img.save(output_file)
+            print(f"File saved: {output_file}")
+            output_images_list.append(output_file)
+
+        return output_images_list
+
+    except Exception as e:
+        print(f"Error generating images: {e}")
+        return None
+
+# Usage
+results = image_to_image(
+    image_file="product.jpg",
+    prompt="Transform this product photo into a watercolor painting with soft colors",
+    n=2,
+    size="1024x1024",
+    quality="high"
+)
+```
+
+### TypeScript/Node.js REST API Example
+
+```typescript
+import * as fs from 'fs';
+import * as path from 'path';
+import fetch from 'node-fetch';
+import FormData from 'form-data';
+
+interface ImageTransformOptions {
+  imageFile: string;
+  prompt: string;
+  n?: number;
+  size?: '1024x1024' | '1536x1024' | '1024x1536';
+  quality?: 'high' | 'medium' | 'low';
+}
+
+interface ImageResult {
+  b64_json: string;
+}
+
+async function imageToImage(options: ImageTransformOptions): Promise<string[]> {
+  try {
+    const {
+      imageFile,
+      prompt,
+      n = 1,
+      size = '1024x1024',
+      quality = 'high'
+    } = options;
+
+    // Configuration
+    const apiKey = process.env.IMAGEGEN_AOAI_API_KEY!;
+    const endpoint = process.env.IMAGEGEN_AOAI_RESOURCE!.replace(/\/$/, '');
+    const deployment = process.env.IMAGEGEN_DEPLOYMENT || 'gpt-image-1';
+    const apiVersion = '2025-04-01-preview';
+
+    // Construct URL
+    const url = `${endpoint}/openai/deployments/${deployment}/images/edits?api-version=${apiVersion}`;
+
+    // Prepare form data
+    const formData = new FormData();
+    formData.append('image', fs.createReadStream(imageFile));
+    formData.append('prompt', prompt);
+    formData.append('n', n.toString());
+    formData.append('size', size);
+    formData.append('quality', quality);
+
+    // Send the request
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'api-key': apiKey,
+        ...formData.getHeaders()
+      },
+      body: formData
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const result = await response.json() as { data: ImageResult[] };
+    const outputFiles: string[] = [];
+
+    // Process and save images
+    for (const imageData of result.data) {
+      const buffer = Buffer.from(imageData.b64_json, 'base64');
+      const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+      const outputFile = `transformed_${timestamp}.jpg`;
+      
+      fs.writeFileSync(outputFile, buffer);
+      console.log(`File saved: ${outputFile}`);
+      outputFiles.push(outputFile);
+    }
+
+    return outputFiles;
+
+  } catch (error) {
+    console.error('Error generating images:', error);
+    return [];
+  }
+}
+
+// Usage
+(async () => {
+  const results = await imageToImage({
+    imageFile: 'product.jpg',
+    prompt: 'Transform this product photo into a watercolor painting with soft colors',
+    n: 2,
+    size: '1024x1024',
+    quality: 'high'
+  });
+  
+  console.log('Generated images:', results);
+})();
+```
+
+### REST API Key Points for WPP
+
+1. **Endpoint Structure**: `{endpoint}/openai/deployments/{deployment}/images/edits?api-version={version}`
+2. **Authentication**: Use `api-key` header with your Azure OpenAI key
+3. **Multipart Form Data**: Send image file and parameters as form data
+4. **Response Format**: Base64-encoded images in JSON response
+5. **Rate Limits**: Monitor quota and implement retry logic for production
+6. **Error Handling**: Always handle network errors and API rate limits gracefully
+
+### Required Dependencies
+
+**Python:**
+```bash
+pip install requests pillow python-dotenv
+```
+
+**TypeScript/Node.js:**
+```bash
+npm install node-fetch form-data @types/node
+```
+
 ## 📚 Documentation
 
 - [Azure AI Foundry Documentation](https://learn.microsoft.com/azure/ai-studio/)

@@ -1,0 +1,60 @@
+# Python virtual environment
+.venv/
+venv/
+env/
+ENV/
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+*/.ipynb_checkpoints/*
+
+# Environment variables and secrets
+*.env
+azure.env
+.env.local
+.env.*.local
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Generated images and results
+*_results/
+results/
+compose_results/
+edition_results/
+inpainting_results/
+image_to_image_results/
+*.jpg
+*.png
+*.jpeg
+*.webp
+!notebooks/images/*.jpg
+!notebooks/images/*.png
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Distribution / packaging
+dist/
+build/
+*.egg-info/
+
+# Test outputs
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Logs
+*.log

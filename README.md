@@ -5,8 +5,8 @@ A comprehensive demonstration repository showcasing the capabilities of OpenAI's
 ## 👤 Author
 
 **Arturo Quiroga**  
-*Cloud Solution Architect - AI & Data*  
-Microsoft
+*Senior Azure AI Partner Solutions Architect*  
+*Enterprise Partner Solutions - Microsoft America*
 
 ## 🎯 Purpose
 

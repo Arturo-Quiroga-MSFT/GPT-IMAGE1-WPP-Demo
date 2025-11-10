@@ -93,12 +93,12 @@ pip install -r requirements.txt
 ```
 GPT-IMAGE1/
 ├── notebooks/
-│   ├── Azure AI Foundry gpt-image-1 - Image generation.ipynb
-│   ├── Azure AI Foundry gpt-image-1 - Image edition.ipynb
-│   ├── Azure AI Foundry gpt-image-1 - Image Compose.ipynb
-│   ├── Azure AI Foundry gpt-image-1 - Image Inpainting.ipynb
-│   ├── Azure AI Foundry gpt-image-1 - Image to Image.ipynb
-│   ├── Azure AI Foundry gpt-image-1 - streamlitwebapp.ipynb
+│   ├── Image generation.ipynb
+│   ├── Image edition.ipynb
+│   ├── Image Compose.ipynb
+│   ├── Image Inpainting.ipynb
+│   ├── Image to Image.ipynb
+│   ├── streamlitwebapp.ipynb
 │   ├── azure.env (your credentials - not committed)
 │   └── images/ (sample images)
 ├── requirements.txt

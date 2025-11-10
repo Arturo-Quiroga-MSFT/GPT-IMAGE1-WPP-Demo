@@ -20,19 +20,7 @@ __pycache__/
 *$py.class
 *.so
 
-# Generated images and results
-*_results/
-results/
-compose_results/
-edition_results/
-inpainting_results/
-image_to_image_results/
-*.jpg
-*.png
-*.jpeg
-*.webp
-!notebooks/images/*.jpg
-!notebooks/images/*.png
+
 
 # macOS
 .DS_Store
